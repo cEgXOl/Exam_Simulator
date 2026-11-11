@@ -24,6 +24,20 @@ Para desplegar una copia, vincula tu propio proyecto con `npx netlify link`, com
 
 Para contribuir mediante una pull request, consulta [CONTRIBUTING.md](CONTRIBUTING.md). El flujo de integración ejecuta las pruebas en cada PR.
 
+## Importar exámenes VCE
+
+En **Biblioteca / editor** hay dos botones: **Importar copia (JSON)** para las copias de ExamStudio e **Importar VCE** para exámenes de VCE Studio en versión 34. La conversión se hace en el navegador con Pyodide (Python compilado a WebAssembly) y el conversor `vce34_to_json.py`, que se sirve desde `dist/vendor`.
+
+Usa el **Designer VERDE** de la carpeta **Player** (versión portable), no el Designer azul de clase. Si tienes un `.vce` creado con el azul, ábrelo con el verde y pulsa **Guardar**: se convierte automáticamente a v34 (cabecera `85 A8 03 04`). La pantalla comprueba los cuatro primeros bytes y muestra en rojo los ficheros que no son v34.
+
+La primera conversión descarga el entorno de Python desde jsDelivr (unos 10-15 MB) y queda en la caché del navegador. Por eso la importación VCE necesita la web publicada o `npx netlify dev`; no funciona abriendo `dist/index.html` como archivo local.
+
+La importación admite elección única y múltiple, hot area, drag & drop sobre imagen y las variantes de arrastre de VCE. Antes de subir nada se muestra un informe con las preguntas importadas, las imágenes detectadas y los avisos. Si alguna pregunta no se puede convertir, aparece como una entrada pulsable con su número de pregunta VCE, tipo, motivo y detalles del fichero original; nunca se omite una pregunta en silencio.
+
+Las imágenes se guardan en el almacén `examstudio-assets` de Netlify Blobs. El conversor calcula su SHA-256 y el examen guarda URLs permanentes con la forma `/assets/<sha256>.<ext>`; no se incluye base64 en el JSON. Las lecturas de `/assets/*` son públicas para que los exámenes compartidos carguen sus imágenes, pero las subidas siguen exigiendo la cookie de acceso. En `npx netlify dev` se usa el mismo almacén local de Blobs.
+
+El editor incluye un editor geométrico para hot area y drag & drop: permite dibujar, mover, redimensionar y eliminar zonas, marcar las correctas, cambiar la imagen principal y regenerar los recortes de los ítems. También conserva las imágenes incrustadas del enunciado, el caso de estudio, las opciones y la justificación al editar preguntas importadas.
+
 ## Crear y editar exámenes
 
 Cada pregunta puede tener un **título opcional**, visible únicamente al gestionar las preguntas en el editor. El título se conserva al editar, duplicar, exportar e importar el examen, y no se muestra durante la sesión ni en la revisión. Las preguntas existentes sin título siguen mostrando una parte del enunciado en la lista.
